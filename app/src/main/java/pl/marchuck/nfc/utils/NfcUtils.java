@@ -1,4 +1,4 @@
-package pl.marchuck.nfc;
+package pl.marchuck.nfc.utils;
 
 import android.content.Context;
 import android.nfc.NdefMessage;
@@ -18,49 +18,55 @@ import rx.Subscriber;
  * @author Lukasz Marczak
  * @since 22.06.16.
  */
-public class NFC {
-    private Context context;
-    private NfcAdapter nfcAdapter;
+public class NfcUtils {
 
-    public NfcAdapter get() {
+
+    public static final String TAG = NfcUtils.class.getSimpleName();
+    public static final String UNKNOWN_STRING = "???";
+
+    NfcAdapter nfcAdapter;
+
+    public NfcAdapter getAdapter() {
         return nfcAdapter;
     }
 
-    public NFC(Context ctx) {
-        this.context = ctx.getApplicationContext();
-        this.nfcAdapter = NfcAdapter.getDefaultAdapter(context);
+    public NfcUtils(Context ctx) {
+        this.nfcAdapter = NfcAdapter.getDefaultAdapter(ctx);
     }
 
-    rx.Observable<String> getNfcMessage(final Tag tag) {
-        return rx.Observable.create(new Observable.OnSubscribe<String>() {
+    public rx.Observable<NdefRecord> readNfcTag(final Tag tag) {
+        return rx.Observable.create(new Observable.OnSubscribe<NdefRecord>() {
             @Override
-            public void call(Subscriber<? super String> subscriber) {
+            public void call(Subscriber<? super NdefRecord> subscriber) {
                 Ndef ndef = Ndef.get(tag);
                 if (ndef == null) {
                     // NDEF is not supported by this Tag.
                     subscriber.onError(new NullPointerException("Tag not supported!"));
                     return;
                 }
+
                 NdefMessage ndefMessage = ndef.getCachedNdefMessage();
                 NdefRecord[] records = ndefMessage.getRecords();
+
                 for (NdefRecord ndefRecord : records) {
-                    if (ndefRecord.getTnf() == NdefRecord.TNF_WELL_KNOWN && Arrays.equals(ndefRecord.getType(), NdefRecord.RTD_TEXT)) {
-                        try {
-                            subscriber.onNext(readText(ndefRecord));
-                        } catch (UnsupportedEncodingException e) {
-                            //unsupported encoding exception
-                            //subscriber.onError(e);
-                        }
+                    Log.d(TAG, "call: " + ndefRecord.toMimeType());
+                    if (isRecordValid(ndefRecord)) {
+                        subscriber.onNext(ndefRecord);
                     }
                 }
                 subscriber.onCompleted();
             }
+
+            private boolean isRecordValid(NdefRecord record) {
+                return record.getTnf() == NdefRecord.TNF_WELL_KNOWN &&
+                        Arrays.equals(record.getType(), NdefRecord.RTD_TEXT);
+            }
         });
     }
 
-    private String readText(NdefRecord record) throws UnsupportedEncodingException {
+    public static String readText(NdefRecord record) {
         /*
-         * See NFC forum specification for "Text Record Type Definition" at 3.2.1
+         * See NfcUtils forum specification for "Text Record Type Definition" at 3.2.1
          *
          * http://www.nfc-forum.org/specs/
          *
@@ -81,7 +87,11 @@ public class NFC {
         // e.g. "en"
 
         // Get the Text
-        return new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1, textEncoding);
+        try {
+            return new String(payload, languageCodeLength + 1, payload.length - languageCodeLength - 1, textEncoding);
+        } catch (UnsupportedEncodingException e) {
+            return UNKNOWN_STRING;
+        }
     }
 
 }

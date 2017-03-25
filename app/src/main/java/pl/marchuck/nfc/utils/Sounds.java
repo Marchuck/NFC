@@ -1,4 +1,4 @@
-package pl.marchuck.nfc;
+package pl.marchuck.nfc.utils;
 
 import android.content.Context;
 

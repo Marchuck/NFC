@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">NFC</string>
+    <string name="url_mocked">http://androidweekly.net/</string>
 </resources>

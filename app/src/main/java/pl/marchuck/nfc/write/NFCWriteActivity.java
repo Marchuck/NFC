@@ -1,6 +1,5 @@
-package pl.marchuck.nfc;
+package pl.marchuck.nfc.write;
 
-import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
@@ -12,12 +11,20 @@ import android.nfc.Tag;
 import android.nfc.tech.Ndef;
 import android.nfc.tech.NdefFormatable;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
 
-public class NFCActivity extends Activity {
+import pl.marchuck.nfc.R;
+import pl.marchuck.nfc.utils.Sounds;
+
+public class NfcWriteActivity extends AppCompatActivity {
     private static final String TAG = "NFCWriteTag";
     private NfcAdapter mNfcAdapter;
     private IntentFilter[] mWriteTagFilters;
@@ -26,10 +33,20 @@ public class NFCActivity extends Activity {
     private boolean writeProtect = false;
     private Context context;
 
+    String textToWrite;
+    EditText text_to_write;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_write);
+
+        textToWrite = getResources().getString(R.string.url_mocked);
+
+        setupBackButton();
+        setupTextChanges();
+
+
         context = getApplicationContext();
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
         mNfcPendingIntent = PendingIntent.getActivity(this, 0, new Intent(this,
@@ -40,6 +57,34 @@ public class NFCActivity extends Activity {
         IntentFilter techDetected = new IntentFilter(NfcAdapter.ACTION_TECH_DISCOVERED);
         // Intent filters for writing to a tag
         mWriteTagFilters = new IntentFilter[]{discovery};
+    }
+
+    private void setupTextChanges() {
+        text_to_write = (EditText) findViewById(R.id.text_to_write);
+        text_to_write.addTextChangedListener(new TextWatcher() {
+
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            }
+
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                textToWrite = charSequence.toString();
+            }
+
+            public void afterTextChanged(Editable editable) {
+            }
+        });
+    }
+
+    private void setupBackButton() {
+        View backBtn = findViewById(R.id.write_back_button);
+        if (backBtn != null) {
+            backBtn.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    onBackPressed();
+                }
+            });
+        }
     }
 
     @Override
@@ -64,14 +109,16 @@ public class NFCActivity extends Activity {
 //            }
             mNfcAdapter.enableForegroundDispatch(this, mNfcPendingIntent, mWriteTagFilters, null);
         } else {
-            Toast.makeText(context, "Sorry, No NFC Adapter found.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "Sorry, No NfcUtils Adapter found.", Toast.LENGTH_SHORT).show();
         }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        if (mNfcAdapter != null) mNfcAdapter.disableForegroundDispatch(this);
+        if (mNfcAdapter != null) {
+            mNfcAdapter.disableForegroundDispatch(this);
+        }
     }
 
     @Override
@@ -84,7 +131,7 @@ public class NFCActivity extends Activity {
                 // check if tag is writable (to the extent that we can
                 if (writableTag(detectedTag)) {
                     //writeTag here
-                    WriteResponse wr = writeTag(getTagAsNdef(), detectedTag);
+                    WriteResponse wr = writeTag(getTagAsNdef(textToWrite), detectedTag);
                     String message = (wr.getStatus() == 1 ? "Success: " : "Failed: ") + wr.getMessage();
                     Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
                 } else {
@@ -198,24 +245,27 @@ public class NFCActivity extends Activity {
         }
         return false;
     }
-    private NdefMessage getTagAsNdef() {
+
+    private NdefMessage getTagAsNdef(String message) {
         boolean addAAR = false;
-        String uniqueId = "smartwhere.com/nfc.html";
+//        String uniqueId = "smartwhere.com/nfc.html";
+        String uniqueId = message;
         byte[] uriField = uniqueId.getBytes(Charset.forName("US-ASCII"));
         byte[] payload = new byte[uriField.length + 1];       //add 1 for the URI Prefix
         payload[0] = 0x01;                        //prefixes http://www. to the URI
         System.arraycopy(uriField, 0, payload, 1, uriField.length); //appends URI to payload
         NdefRecord rtdUriRecord = new NdefRecord(
                 NdefRecord.TNF_WELL_KNOWN, NdefRecord.RTD_URI, new byte[0], payload);
-        if(addAAR) {
-            // note: returns AAR for different app (nfcreadtag)
-            return new NdefMessage(new NdefRecord[] {
-                    rtdUriRecord, NdefRecord.createApplicationRecord("com.tapwise.nfcreadtag")
-            });
-        } else {
-            return new NdefMessage(new NdefRecord[] {
-                    rtdUriRecord});
-        }
+//        if (addAAR) {
+//            // note: returns AAR for different app (nfcreadtag)
+//            return new NdefMessage(new NdefRecord[]{
+//                    rtdUriRecord, NdefRecord.createApplicationRecord("com.tapwise.nfcreadtag")
+//            });
+//        } else {
+//            return new NdefMessage(new NdefRecord[]{
+//                    rtdUriRecord});
+//        }
+        return new NdefMessage(new NdefRecord[]{
+                rtdUriRecord});
     }
 }
-

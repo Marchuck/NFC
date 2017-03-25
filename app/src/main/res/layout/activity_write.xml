@@ -11,18 +11,26 @@
     tools:context="pl.marchuck.nfc.scan.NfcScanActivity">
 
     <TextView
-        android:id="@+id/text_nfc"
+        android:id="@+id/text_write_message"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:layout_margin="@dimen/activity_horizontal_margin"
+        android:layout_centerHorizontal="true"
         android:padding="@dimen/activity_horizontal_margin"
-        android:text="Scan nearby NFC tags"
+        android:text="Write http url for NFC tag"
         android:textColor="@android:color/white"
-        android:textSize="25sp" />
+        android:textSize="22sp" />
+
+    <EditText
+        android:id="@+id/text_to_write"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/text_write_message"
+        android:hint="url"
+        android:text="@string/url_mocked"
+        android:textColor="@color/colorAccent" />
 
     <Button
-        android:id="@+id/scan_back_button"
+        android:id="@+id/write_back_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
