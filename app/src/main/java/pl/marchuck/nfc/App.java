@@ -3,6 +3,8 @@ package pl.marchuck.nfc;
 import android.app.Application;
 import android.content.Context;
 
+import pl.marchuck.nfc.utils.SoundUtils;
+
 /**
  * Project "NfcUtils"
  * <p>
@@ -12,11 +14,17 @@ import android.content.Context;
 
 public class App extends Application {
 
-    public static Context context;
+    public SoundUtils sounds;
+
+    public static SoundUtils getSounds(Context context) {
+        return ((App) context.getApplicationContext()).sounds;
+    }
 
     @Override
     public void onCreate() {
         super.onCreate();
-        context = this.getApplicationContext();
+
+        sounds = new SoundUtils().prepare(this);
+
     }
 }

@@ -25,22 +25,21 @@ import rx.schedulers.Schedulers;
  * Created by Lukasz Marczak
  * on 25.03.2017.
  */
+class NfcScanPresenter<T extends Activity> {
 
-public class NfcScanPresenter<T extends Activity> {
+    private static final String TAG = NfcScanPresenter.class.getSimpleName();
+    private static final String MIME_TEXT_PLAIN = "text/plain";
 
-    public static final String TAG = NfcScanPresenter.class.getSimpleName();
-    public static final String MIME_TEXT_PLAIN = "text/plain";
+    private NfcScanView<T> view;
 
-    NfcScanView<T> view;
+    private NfcUtils nfc;
+    private Subscription readSubscription;
 
-    NfcUtils nfc;
-
-
-    public NfcScanPresenter(NfcScanView<T> view) {
+    NfcScanPresenter(NfcScanView<T> view) {
         this.view = view;
     }
 
-    public void startNfc() {
+    void startNfc() {
         Log.d(TAG, "setupForegroundDispatch: ");
 
         final Intent intent = new Intent(view.self(), this.getClass());
@@ -60,16 +59,15 @@ public class NfcScanPresenter<T extends Activity> {
         } catch (IntentFilter.MalformedMimeTypeException e) {
             throw new RuntimeException("Check your mime type.");
         }
-
         nfc.getAdapter().enableForegroundDispatch(view.self(), pendingIntent, filters, techList);
     }
 
-    public void pauseNfc() {
+    void pauseNfc() {
         Log.d(TAG, "stopForegroundDispatch: ");
         nfc.getAdapter().disableForegroundDispatch(view.self());
     }
 
-    public void requestPermissions(final Context c) {
+    void requestPermissions(final Context c) {
         view.ensurePermissions()
                 .subscribe(new NfcObserver<Boolean>() {
 
@@ -92,7 +90,7 @@ public class NfcScanPresenter<T extends Activity> {
         nfc = new NfcUtils(c);
     }
 
-    public void handleIntent(Intent intent) {
+    void handleIntent(Intent intent) {
         String action = intent.getAction();
         Log.d(TAG, "handleIntent: " + action);
 
@@ -103,7 +101,7 @@ public class NfcScanPresenter<T extends Activity> {
         if (event.hasTag()) {
             Tag tag = event.getTag();
 
-            Subscription s = nfc.readNfcTag(tag)
+            readSubscription = nfc.readNfcTag(tag)
                     .map(new Func1<NdefRecord, String>() {
                         @Override
                         public String call(NdefRecord ndefRecord) {
@@ -113,13 +111,13 @@ public class NfcScanPresenter<T extends Activity> {
                     .subscribe(new NfcObserver<String>() {
                         @Override
                         public void onError(Throwable e) {
-                            Log.e(TAG, "onError: ",e );
+                            Log.e(TAG, "onError: ", e);
                             view.onErrorReadTag();
                         }
 
                         @Override
                         public void onNext(String s) {
-                            Log.d(TAG, "onNext: " + s  );
+                            Log.d(TAG, "onNext: " + s);
                             view.onTagRead(s);
                         }
                     });
@@ -128,13 +126,20 @@ public class NfcScanPresenter<T extends Activity> {
         }
     }
 
-    private <T> Observable.Transformer<T, T> applySchedulers() {
-        return new Observable.Transformer<T, T>() {
+    private <TRANSFORMER> Observable.Transformer<TRANSFORMER, TRANSFORMER> applySchedulers() {
+        return new Observable.Transformer<TRANSFORMER, TRANSFORMER>() {
             @Override
-            public Observable<T> call(Observable<T> upstream) {
+            public Observable<TRANSFORMER> call(Observable<TRANSFORMER> upstream) {
                 return upstream.subscribeOn(Schedulers.io())
                         .observeOn(AndroidSchedulers.mainThread());
             }
         };
+    }
+
+    void destroy() {
+        if (readSubscription != null && !readSubscription.isUnsubscribed()) {
+            readSubscription.unsubscribe();
+            readSubscription = null;
+        }
     }
 }

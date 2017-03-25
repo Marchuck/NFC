@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import pl.marchuck.nfc.scan.NfcScanActivity;
+import pl.marchuck.nfc.utils.SoundUtils;
 import pl.marchuck.nfc.write.NfcWriteActivity;
 
 public class MainActivity extends AppCompatActivity
@@ -16,7 +17,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main2);
+        setContentView(R.layout.activity_main);
 
         View view1 = findViewById(R.id.write_example);
         View view2 = findViewById(R.id.scan_example);
@@ -26,6 +27,8 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onClick(View view) {
+
+        SoundUtils.get(this).play(false);
         Class<? extends Activity> klazz;
 
         switch (view.getId()) {

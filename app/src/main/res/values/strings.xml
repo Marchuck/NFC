@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">NFC</string>
     <string name="url_mocked">http://androidweekly.net/</string>
+    <string name="scan_example">SCAN EXAMPLE</string>
+    <string name="write_example">WRITE EXAMPLE</string>
+    <string name="back">BACK</string>
+    <string name="text_write_message">Write http url for NFC tag</string>
+    <string name="url_hint">url</string>
+    <string name="scan_nfc_tags">Scan NFC tags</string>
 </resources>

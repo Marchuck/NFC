@@ -31,7 +31,7 @@ public class NfcScanActivity extends AppCompatActivity implements NfcScanView<Nf
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_scan);
         textView = (TextView) findViewById(R.id.text_nfc);
 
         View backBtn = findViewById(R.id.scan_back_button);
@@ -67,9 +67,10 @@ public class NfcScanActivity extends AppCompatActivity implements NfcScanView<Nf
     }
 
     @Override
+    @SuppressWarnings("deprecated")
     public void onNfcReady() {
         final PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        this.wakeLock = pm.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "My Tag");
+        this.wakeLock = pm.newWakeLock(6, "My Tag");
         this.wakeLock.acquire();
         //presenter.handleIntent(getIntent());
     }
@@ -124,6 +125,8 @@ public class NfcScanActivity extends AppCompatActivity implements NfcScanView<Nf
     public void onDestroy() {
         Log.d(TAG, "onDestroy: ");
         this.wakeLock.release();
+        presenter .destroy();
+        presenter  = null;
         super.onDestroy();
     }
 

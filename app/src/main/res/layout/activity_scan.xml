@@ -14,22 +14,20 @@
         android:id="@+id/text_nfc"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_margin="@dimen/activity_horizontal_margin"
+        android:padding="@dimen/activity_horizontal_margin"
         android:textColor="@android:color/white"
-        tools:text="Hello World!" />
+        android:textSize="25sp"
+        android:text="@string/scan_nfc_tags" />
+
 
     <Button
-        android:id="@+id/scan_example"
+        android:id="@+id/scan_back_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
         android:layout_centerInParent="true"
-        android:text="SCAN EXAMPLE" />
-
-    <Button
-        android:id="@+id/write_example"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/scan_example"
-        android:layout_centerInParent="true"
-        android:text="WRITE EXAMPLE" />
+        android:text="@string/back" />
 
 </RelativeLayout>
